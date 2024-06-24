@@ -234,7 +234,7 @@ help:
 
 
 ## GitHub Action shortcuts
-GITHUB_TOKEN:=$(shell gh auth token || (gh auth login --scopes "write:artifacts,workflow" && gh auth token))
+GITHUB_TOKEN:=$(shell gh auth token || (gh auth login --scopes "contents:write" && gh auth token))
 GITHUB_USER:=$(gh api user | jq -r '.login')
 PAGER=cat
 
@@ -242,6 +242,7 @@ check-cves:
 	gh act \
 	  --actor "${GITHUB_ACTOR}" \
 		--secret GITHUB_TOKEN="${GITHUB_TOKEN}" \
-		--workflows .github/workflows/check-cves.yml
+		--workflows .github/workflows/check-cves.yml \
+		--verbose
 
 .PHONY: check-cves

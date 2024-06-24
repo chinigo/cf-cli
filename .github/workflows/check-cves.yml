@@ -2,6 +2,8 @@ name: "Check CVEs"
 
 on:
   workflow_dispatch:
+  push:
+  pull_request:
 
 jobs:
   check-cves:
@@ -11,13 +13,20 @@ jobs:
     - name: Check out codebase
       uses: actions/checkout@v4
     
+    - name: Debug
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: env | sort
+    
     - name: Generate SBOM
       uses: anchore/sbom-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         path: .
         upload-artifact: true
         format: spdx-json
-        github-token: ${{ secrets.GITHUB_TOKEN }}-asdkmlasmdlkasm
+        github-token: ${{ env.GITHUB_TOKEN }}
         output-file: "cf-cli-sbom.spdx.json"
     
     - name: Debug
