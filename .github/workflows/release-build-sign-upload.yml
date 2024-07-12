@@ -716,138 +716,138 @@ jobs:
 ######## Release Section ########
 #################################
 
-  s3-upload:
-    name: Upload Artifacts to S3 bucket
-    runs-on: ubuntu-latest
-    needs:
-    - setup
-    - test-rpm-package
-    - test-deb-package
-    - test-macos
-    - test-windows
-    permissions:
-      actions: read
-      contents: read
-    env:
-      AWS_ACCESS_KEY_ID:     ${{ vars.AWS_ACCESS_KEY_ID }}
-      AWS_REGION:            ${{ vars.AWS_REGION }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_S3_BUCKET:         ${{ needs.setup.outputs.aws-s3-bucket }}
-      VERSION_BUILD:         ${{ needs.setup.outputs.version-build }}
-      VERSION_MAJOR:         ${{ needs.setup.outputs.version-major }}
-    steps:
+  # s3-upload:
+  #   name: Upload Artifacts to S3 bucket
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - setup
+  #   - test-rpm-package
+  #   - test-deb-package
+  #   - test-macos
+  #   - test-windows
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #   env:
+  #     AWS_ACCESS_KEY_ID:     ${{ vars.AWS_ACCESS_KEY_ID }}
+  #     AWS_REGION:            ${{ vars.AWS_REGION }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     AWS_S3_BUCKET:         ${{ needs.setup.outputs.aws-s3-bucket }}
+  #     VERSION_BUILD:         ${{ needs.setup.outputs.version-build }}
+  #     VERSION_MAJOR:         ${{ needs.setup.outputs.version-major }}
+  #   steps:
 
-    - name: Checkout cli
-      uses: actions/checkout@v4
+  #   - name: Checkout cli
+  #     uses: actions/checkout@v4
 
-    - name: Download signed artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: signed # download all artifacts to 'signed/'
+  #   - name: Download signed artifacts
+  #     uses: actions/download-artifact@v4
+  #     with:
+  #       path: signed # download all artifacts to 'signed/'
 
-    - name: Archive nix binaries for upload
-      run: |
+  #   - name: Archive nix binaries for upload
+  #     run: |
 
-        prepare_legal() {
-            cp ../../.github/license/LICENSE-WITH-3RD-PARTY-LICENSES  LICENSE
-            cp ../../.github/license/CF_NOTICE  NOTICE
-        }
+  #       prepare_legal() {
+  #           cp ../../.github/license/LICENSE-WITH-3RD-PARTY-LICENSES  LICENSE
+  #           cp ../../.github/license/CF_NOTICE  NOTICE
+  #       }
 
-        prepare_artifacts() {
-            chmod +x cf${VERSION_MAJOR}
-            ln -s cf${VERSION_MAJOR} cf
-            prepare_legal
-        }
+  #       prepare_artifacts() {
+  #           chmod +x cf${VERSION_MAJOR}
+  #           ln -s cf${VERSION_MAJOR} cf
+  #           prepare_legal
+  #       }
 
-        prepare_win_artifacts() {
-            cp cf${VERSION_MAJOR}.exe cf.exe
-            prepare_legal
-        }
+  #       prepare_win_artifacts() {
+  #           cp cf${VERSION_MAJOR}.exe cf.exe
+  #           prepare_legal
+  #       }
 
-        pushd signed
-          mkdir linux_i686 linux_x86-64 linux_arm64
-          mv cf-cli-linux-binaries/cf-cli_linux_i686 linux_i686/cf${VERSION_MAJOR}
-          mv cf-cli-linux-binaries/cf-cli_linux_x86-64 linux_x86-64/cf${VERSION_MAJOR}
-          mv cf-cli-linux-binaries/cf-cli_linux_arm64 linux_arm64/cf${VERSION_MAJOR}
-          pushd linux_i686
-            prepare_artifacts
-            tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_i686.tgz *
-          popd
-          pushd linux_x86-64
-            prepare_artifacts
-            tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_x86-64.tgz *
-          popd
-          pushd linux_arm64
-            prepare_artifacts
-            tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_arm64.tgz *
-          popd
+  #       pushd signed
+  #         mkdir linux_i686 linux_x86-64 linux_arm64
+  #         mv cf-cli-linux-binaries/cf-cli_linux_i686 linux_i686/cf${VERSION_MAJOR}
+  #         mv cf-cli-linux-binaries/cf-cli_linux_x86-64 linux_x86-64/cf${VERSION_MAJOR}
+  #         mv cf-cli-linux-binaries/cf-cli_linux_arm64 linux_arm64/cf${VERSION_MAJOR}
+  #         pushd linux_i686
+  #           prepare_artifacts
+  #           tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_i686.tgz *
+  #         popd
+  #         pushd linux_x86-64
+  #           prepare_artifacts
+  #           tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_x86-64.tgz *
+  #         popd
+  #         pushd linux_arm64
+  #           prepare_artifacts
+  #           tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_linux_arm64.tgz *
+  #         popd
 
-          mkdir osx
-          mv cf-cli-macos-binaries/cf-cli_osx osx/cf${VERSION_MAJOR}
-          pushd osx
-            prepare_artifacts
-            tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_osx.tgz *
-          popd
-          mkdir macosarm
-          mv cf-cli-macos-binaries/cf-cli_macosarm macosarm/cf${VERSION_MAJOR}
-          pushd macosarm
-            prepare_artifacts
-            tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_macosarm.tgz *
-          popd
+  #         mkdir osx
+  #         mv cf-cli-macos-binaries/cf-cli_osx osx/cf${VERSION_MAJOR}
+  #         pushd osx
+  #           prepare_artifacts
+  #           tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_osx.tgz *
+  #         popd
+  #         mkdir macosarm
+  #         mv cf-cli-macos-binaries/cf-cli_macosarm macosarm/cf${VERSION_MAJOR}
+  #         pushd macosarm
+  #           prepare_artifacts
+  #           tar -cvzf cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_macosarm.tgz *
+  #         popd
 
-          mkdir win32 winx64
-          mv cf-cli-windows-binaries/cf-cli_win32.exe win32/cf${VERSION_MAJOR}.exe
-          mv cf-cli-windows-binaries/cf-cli_winx64.exe winx64/cf${VERSION_MAJOR}.exe
-          pushd win32
-            prepare_win_artifacts
-            # -y flag avoids the default behavior of dereferencing the link, so we archive the symlink as-is
-            zip -y cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_win32.zip *
-          popd
-          pushd winx64
-            prepare_win_artifacts
-            # -y flag avoids the default behavior of dereferencing the link, so we archive the symlink as-is
-            zip -y cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_winx64.zip *
-          popd
-        popd
+  #         mkdir win32 winx64
+  #         mv cf-cli-windows-binaries/cf-cli_win32.exe win32/cf${VERSION_MAJOR}.exe
+  #         mv cf-cli-windows-binaries/cf-cli_winx64.exe winx64/cf${VERSION_MAJOR}.exe
+  #         pushd win32
+  #           prepare_win_artifacts
+  #           # -y flag avoids the default behavior of dereferencing the link, so we archive the symlink as-is
+  #           zip -y cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_win32.zip *
+  #         popd
+  #         pushd winx64
+  #           prepare_win_artifacts
+  #           # -y flag avoids the default behavior of dereferencing the link, so we archive the symlink as-is
+  #           zip -y cf${VERSION_MAJOR}-cli_${VERSION_BUILD}_winx64.zip *
+  #         popd
+  #       popd
 
-    - name: Rearrange artifacts before upload
-      run: |
-        mkdir upload
-        cp -v -t upload  \
-          signed/cf-cli-linux-rpm-packages/cf*rpm \
-          signed/cf-cli-linux-deb-packages/cf*deb \
-          signed/cf-cli-macos-packages/cf*pkg \
-          signed/cf-cli-windows-packages/cf*zip \
-          signed/linux_i686/*tgz \
-          signed/linux_x86-64/*tgz \
-          signed/linux_arm64/*tgz \
-          signed/osx/*tgz \
-          signed/macosarm/*tgz \
-          signed/win32/*zip \
-          signed/winx64/*zip
+  #   - name: Rearrange artifacts before upload
+  #     run: |
+  #       mkdir upload
+  #       cp -v -t upload  \
+  #         signed/cf-cli-linux-rpm-packages/cf*rpm \
+  #         signed/cf-cli-linux-deb-packages/cf*deb \
+  #         signed/cf-cli-macos-packages/cf*pkg \
+  #         signed/cf-cli-windows-packages/cf*zip \
+  #         signed/linux_i686/*tgz \
+  #         signed/linux_x86-64/*tgz \
+  #         signed/linux_arm64/*tgz \
+  #         signed/osx/*tgz \
+  #         signed/macosarm/*tgz \
+  #         signed/win32/*zip \
+  #         signed/winx64/*zip
 
-    - name: Store Artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        if-no-files-found: error
-        name: final-artifacts
-        path: signed/*          
+  #   - name: Store Artifacts
+  #     uses: actions/upload-artifact@v4
+  #     with:
+  #       if-no-files-found: error
+  #       name: final-artifacts
+  #       path: signed/*          
 
-    - name: Setup aws to upload installers to CLAW S3 bucket
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id:     ${{ vars.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
-        aws-region:            ${{ vars.AWS_REGION }}
-        role-to-assume:        ${{ vars.AWS_S3_ROLE_ARN }}
-        role-skip-session-tagging: true
-        role-duration-seconds:     1200
+  #   - name: Setup aws to upload installers to CLAW S3 bucket
+  #     uses: aws-actions/configure-aws-credentials@v4
+  #     with:
+  #       aws-access-key-id:     ${{ vars.AWS_ACCESS_KEY_ID }}
+  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY  }}
+  #       aws-region:            ${{ vars.AWS_REGION }}
+  #       role-to-assume:        ${{ vars.AWS_S3_ROLE_ARN }}
+  #       role-skip-session-tagging: true
+  #       role-duration-seconds:     1200
 
-    - name: Upload installers to CLAW S3 bucket
-      run: aws s3 sync upload "s3://v${VERSION_MAJOR}-cf-cli-releases/releases/v${VERSION_BUILD}/"
+  #   - name: Upload installers to CLAW S3 bucket
+  #     run: aws s3 sync upload "s3://v${VERSION_MAJOR}-cf-cli-releases/releases/v${VERSION_BUILD}/"
 
-    - name: list S3 for human verification
-      run: aws s3 ls "s3://v${VERSION_MAJOR}-cf-cli-releases/releases/v${VERSION_BUILD}/"
+  #   - name: list S3 for human verification
+  #     run: aws s3 ls "s3://v${VERSION_MAJOR}-cf-cli-releases/releases/v${VERSION_BUILD}/"
 
   test-rpm-package:
     name: Test RPM Artifacts
@@ -1000,44 +1000,44 @@ jobs:
           ${{ env.ARTIFACTS_DIR }}/win32/*zip
           ${{ env.ARTIFACTS_DIR }}/winx64/*zip 
 
-  update-claw:
-    name: Add new release version to CLAW
-    runs-on: ubuntu-latest
-    needs:
-    - setup
-    - s3-upload
-    env:
-      VERSION_BUILD: ${{ needs.setup.outputs.version-build }}
-    steps:
-    - name: Checkout CLAW
-      uses: actions/checkout@v4
-      with:
-        repository: cloudfoundry/CLAW
-        ref: master
-        path: CLAW
-        ssh-key: ${{ secrets.GIT_SSH_KEY_CLAW }}  
+  # update-claw:
+  #   name: Add new release version to CLAW
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #   - setup
+  #   - s3-upload
+  #   env:
+  #     VERSION_BUILD: ${{ needs.setup.outputs.version-build }}
+  #   steps:
+  #   - name: Checkout CLAW
+  #     uses: actions/checkout@v4
+  #     with:
+  #       repository: cloudfoundry/CLAW
+  #       ref: master
+  #       path: CLAW
+  #       ssh-key: ${{ secrets.GIT_SSH_KEY_CLAW }}  
 
-    - name: Add new version to claw variables
-      run: |
-        set -ex
+  #   - name: Add new version to claw variables
+  #     run: |
+  #       set -ex
 
-        pushd CLAW
-          if  grep --quiet "${VERSION_BUILD}" "claw-variables.yml" ; then
-            echo 'Version already exists in CLAW.'
-            exit 1
-          else
-            echo "- ${VERSION_BUILD}" >> claw-variables.yml
+  #       pushd CLAW
+  #         if  grep --quiet "${VERSION_BUILD}" "claw-variables.yml" ; then
+  #           echo 'Version already exists in CLAW.'
+  #           exit 1
+  #         else
+  #           echo "- ${VERSION_BUILD}" >> claw-variables.yml
 
-            git add claw-variables.yml
+  #           git add claw-variables.yml
 
-            if ! [ -z "$(git status --porcelain)"]; then
-              git config user.name github-actions
-              git config user.email github-actions@github.com
-              git commit -m "Add CF CLI ${VERSION_BUILD}"
-            else
-                echo "no new version to commit"
-            fi
+  #           if ! [ -z "$(git status --porcelain)"]; then
+  #             git config user.name github-actions
+  #             git config user.email github-actions@github.com
+  #             git commit -m "Add CF CLI ${VERSION_BUILD}"
+  #           else
+  #               echo "no new version to commit"
+  #           fi
             
-            git push
-          fi
-        popd
+  #           git push
+  #         fi
+  #       popd
